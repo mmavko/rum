@@ -35,8 +35,9 @@
         transfer-state      (collect :transfer-state classes)      ;; old-state state -> state
         should-update       (collect :should-update classes)       ;; old-state state -> boolean
         will-update         (collect :will-update classes)         ;; state -> state
-        render              (first (collect :render classes))      ;; state -> [dom state]
-        wrapped-render      (reduce #(%2 %1) render (collect :wrap-render classes)) ;; render-fn -> render-fn
+        render              (first (collect :render classes))      ;; state -> dom
+        wrapped-render      (reduce #(%2 %1) render (reverse (collect :wrap-render classes))) ;; render-fn -> render-fn
+        after-render        (collect :after-render classes)        ;; state -> state
         did-update          (collect :did-update classes)          ;; state -> state
         will-unmount        (collect :will-unmount classes)        ;; state -> state
         props->state        (fn [props]
@@ -93,7 +94,8 @@
       (fn []
         (this-as this
           (let [state (state this)
-                [dom next-state] (wrapped-render @state)]
+                dom (wrapped-render @state)
+                next-state (after-render @state)]
             (vreset! state next-state)
             dom)))
       :componentDidUpdate
